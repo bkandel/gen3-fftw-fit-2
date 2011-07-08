@@ -157,4 +157,31 @@ int getAPhiDCFFTW(BOData<T>& data,
 
     return 0;
 }
+
+
+
+int plan_fftw(unsigned int n,       // Number of sample data points
+        const char *filename) {
+
+
+
+    double* in = reinterpret_cast<double*>(fftw_malloc(sizeof(double)*n)); 
+    double* out = reinterpret_cast<double*>(fftw_malloc(sizeof(double)*n)); 
+    fftw_plan p = fftw_plan_r2r_1d(n, in, out, FFTW_R2HC, FFTW_MEASURE);
+    
+	FILE *fp; 
+	fp = fopen(filename, "w");
+    fftw_export_wisdom_to_file(fp); 
+    fclose(fp); 
+    std::cerr << "Created the FFTW plan and saved to file." << std::endl;
+    
+    fftw_destroy_plan(p);
+    if (in) 
+        fftw_free(in);
+    if (out)
+        fftw_free(out);
+
+    return 0;
+}
+
 #endif 

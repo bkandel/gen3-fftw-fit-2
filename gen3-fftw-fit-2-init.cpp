@@ -22,7 +22,7 @@ int main(int argc, char* argv[]) {
 
     BOData<double> darkmean;
 
-    {
+    
         cerr << "Processing Dark frame...";
         string filename;
         pl.getValue("RF_DARK_FILE", filename);
@@ -35,19 +35,22 @@ int main(int argc, char* argv[]) {
         filename = "darkmean3.txt";
         write2file2(filename, darkmean);
         cerr << " done." << endl;
-    }
+    
 
     BOData<double> sigma;
     double preset_sigma;
     unsigned int err = pl.getValue("RF_PRESET_SIGMA", preset_sigma);
-    if (err == 0) {
+    if (err == 0) 
+    {
         cerr << "Processing Preset Sigma ...";
         sigma.data = darkmean.data;
         sigma.axes = darkmean.axes;
         string filename = "sigmasigma3.txt";
         write2file2(filename, sigma);
         cerr << " done." << endl;
-    } else {
+    } 
+    else 
+    {
         cerr << "Processing Sigma frame...";
         string filename;
         pl.getValue("RF_SIGMA_FILE", filename);
@@ -60,6 +63,21 @@ int main(int argc, char* argv[]) {
         write2file2(filename, sigma);
         cerr << " done." << endl;
     }
+    
+    
+	double freq;
+    double del_t;
+    double nOfData;
+    const char *wisdom_filename = "wisdom.txt"; 
+    
+    pl.getValue("RF_DEL_TIME", del_t);
+    pl.getValue("RF_MODULATED_FREQ", freq);
+    pl.getValue("RF_NUM_OF_DATA_POINTS", nOfData);
+    
+    cerr << "Creating FFTW Plan..." << endl;
+    
+    plan_fftw(nOfData, wisdom_filename); 
+    cerr << "FFTW Plan creation done." << endl; 
     
     return 0;
 }
