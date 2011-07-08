@@ -81,7 +81,7 @@ unsigned int get_signal_index(double signal_frequency, double delT, unsigned int
 }
 
 template<typename T>
-int getAPhiDCFFTW(BOData<T>& data, 
+int getAPhiDCFFTW2(BOData<T>& data, 
         double freq,    // signal frequency
         unsigned int n,       // samples
         double delT,    // sample interval
@@ -89,7 +89,9 @@ int getAPhiDCFFTW(BOData<T>& data,
         BOData<T>& phi, 
         BOData<T>& DC,
         BOData<T>& corrPhi,
-        BOData<T>& snr) {
+        BOData<T>& snr,
+        const char *wisdom
+        ) {
 
     size_t isize=data.axes[0];
     size_t jsize=data.axes[1];
@@ -106,6 +108,20 @@ int getAPhiDCFFTW(BOData<T>& data,
 
     std::cerr << "signal index: " << si << std::endl;
 
+	FILE *fp; 
+	fp = fopen(wisdom, "r");
+    int importVal = fftw_import_wisdom_from_file(fp); 
+    fclose(fp);
+	
+	if (importVal != 1)
+	{
+		std::cerr << "Error! FFTW wisdom not imported!" << std::endl;
+	}
+	else 
+	{ 
+		std::cerr << "FFTW wisdom imported." << std::endl; 
+	}
+			
     double* in = reinterpret_cast<double*>(fftw_malloc(sizeof(double)*n)); 
     double* out = reinterpret_cast<double*>(fftw_malloc(sizeof(double)*n)); 
     fftw_plan p = fftw_plan_r2r_1d(n, in, out, FFTW_R2HC, FFTW_MEASURE);
@@ -161,9 +177,8 @@ int getAPhiDCFFTW(BOData<T>& data,
 
 
 int plan_fftw(unsigned int n,       // Number of sample data points
-        const char *filename) {
-
-
+        const char *filename)
+{
 
     double* in = reinterpret_cast<double*>(fftw_malloc(sizeof(double)*n)); 
     double* out = reinterpret_cast<double*>(fftw_malloc(sizeof(double)*n)); 

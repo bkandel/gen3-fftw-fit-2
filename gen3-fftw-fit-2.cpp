@@ -5,10 +5,12 @@
 #include <gen3pp/ccfitsfile.h>
 #include <gen3pp/fftwfit.h>
 #include "paramlist.h"
+#include <time.h>
 
 using namespace std;
 
 const int sigFig = 10; 
+std::string darkfile = "darkmean3.gim"; 
 
 int main(int argc, char* argv[]) {
 
@@ -16,92 +18,59 @@ int main(int argc, char* argv[]) {
         cerr << "Usage: " << argv[0] << " <filename.cfg>" << endl;
         return 0;
     }
+    
+    time_t start,end;
+    double dif;
+    time (&start);
+    
 
     ParamList pl; 
     cerr << "Reading configuration...";
     pl.parse(argv[1]);
     cerr << " done." << endl;
 
-    BOData<double> darkmean;
 
-    {
-        cerr << "Processing Dark frame...";
-        string filename;
-        pl.getValue("RF_DARK_FILE", filename);
-        CCFITSfile fitsfile;
-        BOData<double> dat;
-        fitsfile.read(filename, dat);
-        print(dat);
-
-        getMean(dat, 3, darkmean); 
-        filename = "darkmean3.txt";
-        write2file2(filename, darkmean);
-        cerr << " done." << endl;
-    }
-
-    BOData<double> sigma;
-    double preset_sigma;
-    unsigned int err = pl.getValue("RF_PRESET_SIGMA", preset_sigma);
-    if (err == 0) {
-        cerr << "Processing Preset Sigma ...";
-        sigma.data = darkmean.data;
-        sigma.axes = darkmean.axes;
-        string filename = "sigmasigma3.txt";
-        write2file2(filename, sigma);
-        cerr << " done." << endl;
-    } else {
-        cerr << "Processing Sigma frame...";
-        string filename;
-        pl.getValue("RF_SIGMA_FILE", filename);
-        CCFITSfile fitsfile;
-        BOData<double> sigmaData;
-        fitsfile.read(filename, sigmaData);
-        print(sigmaData);
-        getSD(sigmaData, 3, sigma);
-        filename = "sigmasigma3.txt";
-        write2file2(filename, sigma);
-        cerr << " done." << endl;
-    }
-        
     BOData<double> dat;
-    {
-        cerr << "Processing Data frame...";
-        string filename;
-        pl.getValue("RF_DATA_FILE", filename);
-        CCFITSfile fitsfile;
-        fitsfile.read(filename, dat);
-        print(dat);
-        cerr << " done." << endl;
+    cerr << "Processing Data frame...";
+    string filename;
+    pl.getValue("RF_DATA_FILE", filename);
+    CCFITSfile fitsfile;
+    fitsfile.read(filename, dat);
+    print(dat);
+    cerr << " done." << endl;
 
-        cerr << "Subtracting Dark frame...";
-        subtract(darkmean, dat);
-        cerr << " done." << endl;
-    }
-
+	BOData<double> darkmean; 
+	cerr << "Reading Dark frame..." << endl; 
+	readgim(darkfile, darkmean);
+    cerr << "Subtracting Dark frame...";
+    subtract(darkmean, dat);
+    cerr << " done." << endl;
+    
+    
     BOData<double> A;
     BOData<double> phi;
     BOData<double> DC;
     BOData<double> corrPhi;
     BOData<double> snr;
+    const char *wisdom_filename = "wisdom.txt"; 
+    double freq;
+    double del_t;
+    double nOfData;
+    double absErr;
+    double relErr;
+    unsigned int maxIter;
+    pl.getValue("RF_DEL_TIME", del_t);
+    pl.getValue("RF_MODULATED_FREQ", freq);
+    pl.getValue("RF_NUM_OF_DATA_POINTS", nOfData);
 
-    {
-        double freq;
-        double del_t;
-        double nOfData;
-        double absErr;
-        double relErr;
-        unsigned int maxIter;
-        pl.getValue("RF_DEL_TIME", del_t);
-        pl.getValue("RF_MODULATED_FREQ", freq);
-        pl.getValue("RF_NUM_OF_DATA_POINTS", nOfData);
-
-        cerr << "Fitting for A, Phi and DC..." << endl;
+    cerr << "Fitting for A, Phi and DC..." << endl;
         //getAPhiDC(dat, sigma, del_t, freq, nOfData, absErr, relErr, maxIter, A, phi, DC, iters, Status, delDC, delA, delPhi, chi2ByDOF, initA, initPhi, initDC);
-        getAPhiDCFFTW(dat, freq, nOfData, del_t, A, phi, DC, corrPhi, snr);      // signal frequency
-        cerr << " done." << endl;
-    }
+    getAPhiDCFFTW2(dat, freq, nOfData, del_t, A, phi, DC, corrPhi, snr, wisdom_filename);      
+    cerr << " done." << endl;
 
-    string filename = "corrPhi.gim";
+
+
+    filename = "corrPhi.gim";
     write2gim(filename.c_str(), corrPhi, sigFig);
 
     filename = "A.gim";
@@ -116,5 +85,10 @@ int main(int argc, char* argv[]) {
     filename = "snr.gim";
     write2gim(filename.c_str(), snr, sigFig);
 
+    time (&end);
+    dif = difftime (end,start);
+    cout.precision(10); 
+    std::cout << "This took " << dif << " seconds." << std::endl;
+    
     return 0;
 }

@@ -1,0 +1,3 @@
+(fftw-3.2.2 fftw_wisdom
+  (fftw_codelet_r2cf_20 0 #x11bdd #x11bdd #x0 #x7069ac8d #x183feb33 #xf1a53ea8 #x8ace2b0a)
+)

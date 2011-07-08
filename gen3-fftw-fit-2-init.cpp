@@ -8,6 +8,9 @@
 
 using namespace std;
 
+// Define number of significant figures for writing gim files.
+const int sigfig = 12; 
+
 int main(int argc, char* argv[]) {
 
     if (argc != 2) {
@@ -15,28 +18,28 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
+	
     ParamList pl; 
     cerr << "Reading configuration...";
     pl.parse(argv[1]);
     cerr << " done." << endl;
 
+	// Get the mean dark count along the third axis.
     BOData<double> darkmean;
+    cerr << "Processing Dark frame...";
+    string filename;
+    pl.getValue("RF_DARK_FILE", filename);
+    CCFITSfile fitsfile;
+    BOData<double> dat;
+    fitsfile.read(filename, dat);
+    print(dat);
 
+    getMean(dat, 3, darkmean); 
+    filename = "darkmean3.gim";
+    write2gim(filename, darkmean, sigfig);
+    cerr << " done." << endl;
     
-        cerr << "Processing Dark frame...";
-        string filename;
-        pl.getValue("RF_DARK_FILE", filename);
-        CCFITSfile fitsfile;
-        BOData<double> dat;
-        fitsfile.read(filename, dat);
-        print(dat);
-
-        getMean(dat, 3, darkmean); 
-        filename = "darkmean3.txt";
-        write2file2(filename, darkmean);
-        cerr << " done." << endl;
-    
-
+	// Calculate sigma. 
     BOData<double> sigma;
     double preset_sigma;
     unsigned int err = pl.getValue("RF_PRESET_SIGMA", preset_sigma);
@@ -45,8 +48,8 @@ int main(int argc, char* argv[]) {
         cerr << "Processing Preset Sigma ...";
         sigma.data = darkmean.data;
         sigma.axes = darkmean.axes;
-        string filename = "sigmasigma3.txt";
-        write2file2(filename, sigma);
+        string filename = "sigmasigma3.gim";
+        write2gim(filename, sigma, sigfig);
         cerr << " done." << endl;
     } 
     else 
@@ -60,11 +63,12 @@ int main(int argc, char* argv[]) {
         print(sigmaData);
         getSD(sigmaData, 3, sigma);
         filename = "sigmasigma3.txt";
-        write2file2(filename, sigma);
+        write2gim(filename, sigma, sigfig);
         cerr << " done." << endl;
     }
     
     
+    // Create FFTW wisdom for use in subsequent processing steps. 
 	double freq;
     double del_t;
     double nOfData;
@@ -75,7 +79,6 @@ int main(int argc, char* argv[]) {
     pl.getValue("RF_NUM_OF_DATA_POINTS", nOfData);
     
     cerr << "Creating FFTW Plan..." << endl;
-    
     plan_fftw(nOfData, wisdom_filename); 
     cerr << "FFTW Plan creation done." << endl; 
     

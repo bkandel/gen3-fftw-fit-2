@@ -8,5 +8,5 @@ FFTWLIBS=-lfftw3
 gen3-fftw-fit-2: gen3-fftw-fit-2.cpp paramlist.cc paramlist.h  
 	${CXX} ${CXXFLAGS} gen3-fftw-fit-2.cpp paramlist.cc -o gen3-fftw-fit-2.o ${INCLUDE} ${FITSLIBS} ${FFTWLIBS}
 gen3-fftw-fit-2-init: gen3-fftw-fit-2-init.cpp paramlist.cc paramlist.h
-	${CXX} ${CXXFLAGS} gen3-fftw-fit-2-init.cpp paramlist.cc -o gen3-fftw-ffit-2-init.o ${INCLUDE} ${FITSLIBS} ${FFTWLIBS}
+	${CXX} ${CXXFLAGS} gen3-fftw-fit-2-init.cpp paramlist.cc -o gen3-fftw-fit-2-init.o ${INCLUDE} ${FITSLIBS} ${FFTWLIBS}
 
