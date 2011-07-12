@@ -3,7 +3,7 @@
 #include <gen3pp/bodata.h>
 #include <gen3pp/boutil.h>
 #include <gen3pp/ccfitsfile.h>
-#include <gen3pp/fftwfit.h>
+#include <gen3pp/fftw2fit.h>
 #include "paramlist.h"
 #include <time.h>
 
@@ -19,9 +19,6 @@ int main(int argc, char* argv[]) {
         return 0;
     }
     
-    time_t start,end;
-    double dif;
-    time (&start);
     
 
     ParamList pl; 
@@ -33,7 +30,7 @@ int main(int argc, char* argv[]) {
     BOData<double> dat;
     cerr << "Processing Data frame...";
     string filename;
-    pl.getValue("RF_DATA_FILE", filename);
+    pl.getValue("DATA_FILE", filename);
     CCFITSfile fitsfile;
     fitsfile.read(filename, dat);
     print(dat);
@@ -59,9 +56,9 @@ int main(int argc, char* argv[]) {
     double absErr;
     double relErr;
     unsigned int maxIter;
-    pl.getValue("RF_DEL_TIME", del_t);
-    pl.getValue("RF_MODULATED_FREQ", freq);
-    pl.getValue("RF_NUM_OF_DATA_POINTS", nOfData);
+    pl.getValue("SAMPLING_INTERVAL", del_t);
+    pl.getValue("XCORR_FREQUENCY", freq);
+    pl.getValue("NUM_DATA_POINTS", nOfData);
 
     cerr << "Fitting for A, Phi and DC..." << endl;
         //getAPhiDC(dat, sigma, del_t, freq, nOfData, absErr, relErr, maxIter, A, phi, DC, iters, Status, delDC, delA, delPhi, chi2ByDOF, initA, initPhi, initDC);
@@ -85,10 +82,5 @@ int main(int argc, char* argv[]) {
     filename = "snr.gim";
     write2gim(filename.c_str(), snr, sigFig);
 
-    time (&end);
-    dif = difftime (end,start);
-    cout.precision(10); 
-    std::cout << "This took " << dif << " seconds." << std::endl;
-    
     return 0;
 }

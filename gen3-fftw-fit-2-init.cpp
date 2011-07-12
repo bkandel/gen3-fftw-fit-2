@@ -3,7 +3,7 @@
 #include <gen3pp/bodata.h>
 #include <gen3pp/boutil.h>
 #include <gen3pp/ccfitsfile.h>
-#include <gen3pp/fftwfit.h>
+#include <gen3pp/fftw2fit.h>
 #include "paramlist.h"
 
 using namespace std;
@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
     BOData<double> darkmean;
     cerr << "Processing Dark frame...";
     string filename;
-    pl.getValue("RF_DARK_FILE", filename);
+    pl.getValue("DARK_FILE", filename);
     CCFITSfile fitsfile;
     BOData<double> dat;
     fitsfile.read(filename, dat);
@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
 	// Calculate sigma. 
     BOData<double> sigma;
     double preset_sigma;
-    unsigned int err = pl.getValue("RF_PRESET_SIGMA", preset_sigma);
+    unsigned int err = pl.getValue("PRESET_SIGMA", preset_sigma);
     if (err == 0) 
     {
         cerr << "Processing Preset Sigma ...";
@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
     {
         cerr << "Processing Sigma frame...";
         string filename;
-        pl.getValue("RF_SIGMA_FILE", filename);
+        pl.getValue("SIGMA_FILE", filename);
         CCFITSfile fitsfile;
         BOData<double> sigmaData;
         fitsfile.read(filename, sigmaData);
@@ -74,9 +74,9 @@ int main(int argc, char* argv[]) {
     double nOfData;
     const char *wisdom_filename = "wisdom.txt"; 
     
-    pl.getValue("RF_DEL_TIME", del_t);
-    pl.getValue("RF_MODULATED_FREQ", freq);
-    pl.getValue("RF_NUM_OF_DATA_POINTS", nOfData);
+    pl.getValue("SAMPLING_INTERVAL", del_t);
+    pl.getValue("XCORR_FREQUENCY", freq);
+    pl.getValue("NUM_DATA_POINTS", nOfData);
     
     cerr << "Creating FFTW Plan..." << endl;
     plan_fftw(nOfData, wisdom_filename); 
